@@ -1,5 +1,5 @@
 {
-  "name": "@mikocoral05/form-rescue",
+  "name": "@mikael_tenshio/form-rescue",
   "version": "1.0.3",
   "description": "An intelligent, zero-dependency auto-saver for HTML forms.",
   "main": "dist/rescue.js",
