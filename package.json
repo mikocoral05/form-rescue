@@ -1,5 +1,5 @@
 {
-  "name": "form-rescue",
+  "name": "@mikocoral05/form-rescue",
   "version": "1.0.0",
   "description": "An intelligent, zero-dependency auto-saver for HTML forms.",
   "main": "dist/rescue.js",
@@ -34,10 +34,13 @@
     "https://buymeacoffee.com/mikaeltenshio"
   ],
   "license": "ISC",
+  "overrides": {
+    "@tootallnate/once": "^3.0.1"
+  },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
     "@types/jest": "^29.5.12",
-    "esbuild": "^0.20.2",
+    "esbuild": "^0.25.0",
     "eslint": "^10.2.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.5",
