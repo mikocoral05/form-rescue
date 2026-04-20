@@ -4,30 +4,25 @@
 class Rescue {
   constructor(form, options = {}) {
     if (!form) {
-      console.error(
-        "Form Rescue: The provided form element or selector does not exist.",
-      );
+      console.error('Form Rescue: The provided form element or selector does not exist.');
       return;
     }
 
     this.form = form;
     this.options = {
-      ttl: "24h",
+      ttl: '24h',
       debounce: 300,
       ...options,
     };
 
     this.storageKey =
       this.options.storageKey ||
-      `form-rescue-draft:${window.location.pathname}:${this.form.id || this.form.name || "form"}`;
+      `form-rescue-draft:${window.location.pathname}:${this.form.id || this.form.name || 'form'}`;
 
     // Store bound methods to be able to remove them later.
     this.boundClearDraft = this._clearDraft.bind(this);
     this.boundHandleStorageEvent = this._handleStorageEvent.bind(this);
-    this.debouncedSave = this._debounce(
-      this._saveDraft.bind(this),
-      this.options.debounce,
-    );
+    this.debouncedSave = this._debounce(this._saveDraft.bind(this), this.options.debounce);
 
     this._addEventListeners();
     this._loadDraft();
@@ -35,24 +30,22 @@ class Rescue {
 
   static watch(formSelectorOrElement, options) {
     const form =
-      typeof formSelectorOrElement === "string"
+      typeof formSelectorOrElement === 'string'
         ? document.querySelector(formSelectorOrElement)
         : formSelectorOrElement;
 
     if (form) {
       return new Rescue(form, options);
     } else {
-      console.error(
-        `Form Rescue: Could not find form with selector "${formSelectorOrElement}".`,
-      );
+      console.error(`Form Rescue: Could not find form with selector "${formSelectorOrElement}".`);
     }
   }
 
   _addEventListeners() {
-    this.form.addEventListener("input", this.debouncedSave);
-    this.form.addEventListener("submit", this.boundClearDraft);
-    this.form.addEventListener("reset", this.boundClearDraft);
-    window.addEventListener("storage", this.boundHandleStorageEvent);
+    this.form.addEventListener('input', this.debouncedSave);
+    this.form.addEventListener('submit', this.boundClearDraft);
+    this.form.addEventListener('reset', this.boundClearDraft);
+    window.addEventListener('storage', this.boundHandleStorageEvent);
   }
 
   /**
@@ -77,10 +70,10 @@ class Rescue {
     // Cancel any pending debounced save.
     this.debouncedSave.cancel();
 
-    this.form.removeEventListener("input", this.debouncedSave);
-    this.form.removeEventListener("submit", this.boundClearDraft);
-    this.form.removeEventListener("reset", this.boundClearDraft);
-    window.removeEventListener("storage", this.boundHandleStorageEvent);
+    this.form.removeEventListener('input', this.debouncedSave);
+    this.form.removeEventListener('submit', this.boundClearDraft);
+    this.form.removeEventListener('reset', this.boundClearDraft);
+    window.removeEventListener('storage', this.boundHandleStorageEvent);
   }
 
   _serializeForm() {
@@ -91,22 +84,22 @@ class Rescue {
       if (
         !element.name ||
         element.disabled ||
-        element.type === "file" ||
-        element.hasAttribute("data-no-rescue")
+        element.type === 'file' ||
+        element.hasAttribute('data-no-rescue')
       ) {
         continue;
       }
 
       switch (element.type) {
-        case "checkbox":
+        case 'checkbox':
           data[element.name] = element.checked;
           break;
-        case "radio":
+        case 'radio':
           if (element.checked) {
             data[element.name] = element.value;
           }
           break;
-        case "select-multiple":
+        case 'select-multiple':
           data[element.name] = Array.from(element.options)
             .filter((opt) => opt.selected)
             .map((opt) => opt.value);
@@ -117,10 +110,10 @@ class Rescue {
     }
 
     // 2. Custom content-rescuable elements
-    const customElements = this.form.querySelectorAll("[data-rescue-content]");
+    const customElements = this.form.querySelectorAll('[data-rescue-content]');
     for (const element of customElements) {
-      const name = element.getAttribute("data-rescue-content");
-      if (name && !element.hasAttribute("data-no-rescue")) {
+      const name = element.getAttribute('data-rescue-content');
+      if (name && !element.hasAttribute('data-no-rescue')) {
         data[name] = element.innerHTML;
       }
     }
@@ -159,7 +152,7 @@ class Rescue {
         this._restoreForm(draft.data);
       }
     } catch (e) {
-      console.error("Form Rescue: Failed to parse draft from localStorage.", e);
+      console.error('Form Rescue: Failed to parse draft from localStorage.', e);
       this._clearDraft();
     }
   }
@@ -183,10 +176,10 @@ class Rescue {
           }
         } else {
           switch (element.type) {
-            case "checkbox":
+            case 'checkbox':
               element.checked = data[name];
               break;
-            case "select-multiple":
+            case 'select-multiple':
               const values = new Set(data[name]);
               for (const option of element.options) {
                 option.selected = values.has(option.value);
@@ -199,20 +192,18 @@ class Rescue {
         }
 
         elementsToTrigger.forEach((el) => {
-          el.dispatchEvent(new Event("input", { bubbles: true }));
-          el.dispatchEvent(new Event("change", { bubbles: true }));
+          el.dispatchEvent(new Event('input', { bubbles: true }));
+          el.dispatchEvent(new Event('change', { bubbles: true }));
         });
       }
       // Handle custom content-rescuable elements
       else {
-        const customElement = this.form.querySelector(
-          `[data-rescue-content="${name}"]`,
-        );
+        const customElement = this.form.querySelector(`[data-rescue-content="${name}"]`);
         if (customElement) {
           customElement.innerHTML = data[name];
           // Dispatch events for frameworks that might be listening
-          customElement.dispatchEvent(new Event("input", { bubbles: true }));
-          customElement.dispatchEvent(new Event("change", { bubbles: true }));
+          customElement.dispatchEvent(new Event('input', { bubbles: true }));
+          customElement.dispatchEvent(new Event('change', { bubbles: true }));
         }
       }
     }
@@ -228,7 +219,7 @@ class Rescue {
         const draft = JSON.parse(event.newValue);
         this._restoreForm(draft.data);
       } catch (e) {
-        console.error("Form Rescue: Failed to sync from another tab.", e);
+        console.error('Form Rescue: Failed to sync from another tab.', e);
       }
     }
   }
@@ -253,11 +244,11 @@ class Rescue {
     const unit = match[2];
 
     switch (unit) {
-      case "m":
+      case 'm':
         return value * 60 * 1000;
-      case "h":
+      case 'h':
         return value * 60 * 60 * 1000;
-      case "d":
+      case 'd':
         return value * 24 * 60 * 60 * 1000;
       default:
         return value;

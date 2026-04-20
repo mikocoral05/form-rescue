@@ -42,19 +42,16 @@ export interface Draft {
  * and recovering it across page reloads or accidental tab closures.
  */
 class Rescue {
-  private form: HTMLFormElement;
-  private options: Required<
-    Omit<
-      RescueOptions,
-      "onDraftFound" | "onSave" | "storageKey" | "onAjaxSubmit"
-    >
+  private form!: HTMLFormElement;
+  private options!: Required<
+    Omit<RescueOptions, 'onDraftFound' | 'onSave' | 'storageKey' | 'onAjaxSubmit'>
   > &
     RescueOptions;
-  private storageKey: string;
-  private boundClearDraft: () => void;
-  private boundHandleStorageEvent: (event: StorageEvent) => void;
-  private boundHandleSubmit: (event: Event) => void;
-  private debouncedSave: ((...args: any[]) => void) & { cancel: () => void };
+  private storageKey!: string;
+  private boundClearDraft!: () => void;
+  private boundHandleStorageEvent!: (event: StorageEvent) => void;
+  private boundHandleSubmit!: (event: Event) => void;
+  private debouncedSave!: ((...args: any[]) => void) & { cancel: () => void };
 
   /**
    * Initializes a new Rescue instance.
@@ -63,15 +60,13 @@ class Rescue {
    */
   constructor(form: HTMLFormElement, options: RescueOptions = {}) {
     if (!form) {
-      console.error(
-        "Form Rescue: The provided form element or selector does not exist.",
-      );
+      console.error('Form Rescue: The provided form element or selector does not exist.');
       return;
     }
 
     this.form = form;
     this.options = {
-      ttl: "24h",
+      ttl: '24h',
       debounce: 300,
       clearOnSubmit: true,
       ...options,
@@ -79,16 +74,14 @@ class Rescue {
 
     this.storageKey =
       this.options.storageKey ||
-      `form-rescue-draft:${window.location.pathname}:${this.form.id || this.form.name || "form"}`;
+      `form-rescue-draft:${window.location.pathname}:${this.form.id || this.form.name || 'form'}`;
 
     // Store bound methods to be able to remove them later.
     this.boundClearDraft = this._clearDraft.bind(this) as () => void;
     this.boundHandleStorageEvent = this._handleStorageEvent.bind(this) as (
       event: StorageEvent,
     ) => void;
-    this.boundHandleSubmit = this._handleSubmit.bind(this) as (
-      event: Event,
-    ) => void;
+    this.boundHandleSubmit = this._handleSubmit.bind(this) as (event: Event) => void;
     this.debouncedSave = this._debounce(
       this._saveDraft.bind(this) as () => void,
       this.options.debounce,
@@ -110,24 +103,22 @@ class Rescue {
     options?: RescueOptions,
   ): Rescue | undefined {
     const form: HTMLFormElement | null =
-      typeof formSelectorOrElement === "string"
+      typeof formSelectorOrElement === 'string'
         ? document.querySelector(formSelectorOrElement)
         : formSelectorOrElement;
 
     if (form) {
       return new Rescue(form, options);
     } else {
-      console.error(
-        `Form Rescue: Could not find form with selector "${formSelectorOrElement}".`,
-      );
+      console.error(`Form Rescue: Could not find form with selector "${formSelectorOrElement}".`);
     }
   }
 
-  _addEventListeners() {
-    this.form.addEventListener("input", this.debouncedSave);
-    this.form.addEventListener("submit", this.boundHandleSubmit);
-    this.form.addEventListener("reset", this.boundClearDraft);
-    window.addEventListener("storage", this.boundHandleStorageEvent);
+  private _addEventListeners() {
+    this.form.addEventListener('input', this.debouncedSave);
+    this.form.addEventListener('submit', this.boundHandleSubmit);
+    this.form.addEventListener('reset', this.boundClearDraft);
+    window.addEventListener('storage', this.boundHandleStorageEvent);
   }
 
   /**
@@ -154,13 +145,13 @@ class Rescue {
     // Cancel any pending debounced save.
     this.debouncedSave.cancel();
 
-    this.form.removeEventListener("input", this.debouncedSave);
-    this.form.removeEventListener("submit", this.boundHandleSubmit);
-    this.form.removeEventListener("reset", this.boundClearDraft);
-    window.removeEventListener("storage", this.boundHandleStorageEvent);
+    this.form.removeEventListener('input', this.debouncedSave);
+    this.form.removeEventListener('submit', this.boundHandleSubmit);
+    this.form.removeEventListener('reset', this.boundClearDraft);
+    window.removeEventListener('storage', this.boundHandleStorageEvent);
   }
 
-  _handleSubmit(event: Event) {
+  private _handleSubmit(event: Event) {
     if (this.options.onAjaxSubmit) {
       event.preventDefault();
       Promise.resolve(this.options.onAjaxSubmit(event))
@@ -173,53 +164,47 @@ class Rescue {
     }
   }
 
-  _serializeForm() {
+  private _serializeForm() {
     const data: DraftData = {};
     const elements = this.form.elements;
 
-    for (const element of elements) {
-      if (
-        !element.name ||
-        element.disabled ||
-        element.type === "file" ||
-        element.hasAttribute("data-no-rescue")
-      ) {
+    for (const element of Array.from(elements)) {
+      const el = element as HTMLInputElement;
+      if (!el.name || el.disabled || el.type === 'file' || el.hasAttribute('data-no-rescue')) {
         continue;
       }
 
-      switch ((element as HTMLInputElement).type) {
-        case "checkbox":
-          data[element.name] = element.checked;
+      switch (el.type) {
+        case 'checkbox':
+          data[el.name] = el.checked;
           break;
-        case "radio":
-          if (element.checked) {
-            data[element.name] = element.value;
+        case 'radio':
+          if (el.checked) {
+            data[el.name] = el.value;
           }
           break;
-        case "select-multiple":
-          data[element.name] = Array.from(
-            (element as HTMLSelectElement).options,
-          )
+        case 'select-multiple':
+          data[el.name] = Array.from((element as HTMLSelectElement).options)
             .filter((opt) => opt.selected)
             .map((opt) => opt.value);
           break;
         default:
-          data[element.name] = element.value;
+          data[el.name] = el.value;
       }
     }
 
     // 2. Custom content-rescuable elements
-    const customElements = this.form.querySelectorAll("[data-rescue-content]");
+    const customElements = this.form.querySelectorAll('[data-rescue-content]');
     for (const element of customElements) {
-      const name = element.getAttribute("data-rescue-content");
-      if (name && !element.hasAttribute("data-no-rescue")) {
+      const name = element.getAttribute('data-rescue-content');
+      if (name && !element.hasAttribute('data-no-rescue')) {
         data[name] = element.innerHTML;
       }
     }
     return data;
   }
 
-  _saveDraft() {
+  private _saveDraft() {
     const draft: Draft = {
       timestamp: Date.now(),
       data: this._serializeForm(),
@@ -232,7 +217,7 @@ class Rescue {
     }
   }
 
-  _loadDraft() {
+  private _loadDraft() {
     const savedDraft = localStorage.getItem(this.storageKey);
     if (!savedDraft) return;
 
@@ -251,12 +236,12 @@ class Rescue {
         this._restoreForm(draft.data);
       }
     } catch (e) {
-      console.error("Form Rescue: Failed to parse draft from localStorage.", e);
+      console.error('Form Rescue: Failed to parse draft from localStorage.', e);
       this._clearDraft();
     }
   }
 
-  _restoreForm(data: DraftData) {
+  private _restoreForm(data: DraftData) {
     const elements = this.form.elements;
     for (const name in data) {
       if (!Object.prototype.hasOwnProperty.call(data, name)) continue;
@@ -265,66 +250,66 @@ class Rescue {
 
       // Handle standard form elements
       if (element instanceof RadioNodeList || element instanceof HTMLElement) {
-        let elementsToTrigger = [];
+        const elementsToTrigger: HTMLElement[] = [];
 
         if (element.constructor === RadioNodeList) {
-          for (const radio of element) {
+          for (const radio of Array.from(element as unknown as Iterable<HTMLInputElement>)) {
             radio.checked = radio.value === data[name];
             if (radio.checked) elementsToTrigger.push(radio);
           }
         } else {
-          switch ((element as HTMLInputElement).type) {
-            case "checkbox":
-              (element as HTMLInputElement).checked = data[name];
+          const el = element as HTMLInputElement;
+          switch (el.type) {
+            case 'checkbox':
+              el.checked = data[name];
               break;
-            case "select-multiple":
+            case 'select-multiple': {
               const values = new Set(data[name]);
               for (const option of (element as HTMLSelectElement).options) {
                 option.selected = values.has(option.value);
               }
               break;
+            }
             default:
-              element.value = data[name];
+              el.value = data[name];
           }
-          elementsToTrigger.push(element);
+          elementsToTrigger.push(el);
         }
 
         elementsToTrigger.forEach((el) => {
-          el.dispatchEvent(new Event("input", { bubbles: true }));
-          el.dispatchEvent(new Event("change", { bubbles: true }));
+          el.dispatchEvent(new Event('input', { bubbles: true }));
+          el.dispatchEvent(new Event('change', { bubbles: true }));
         });
       }
       // Handle custom content-rescuable elements
       else {
-        const customElement = this.form.querySelector(
-          `[data-rescue-content="${name}"]`,
-        );
+        const customElement = this.form.querySelector(`[data-rescue-content="${name}"]`);
         if (customElement) {
           customElement.innerHTML = data[name];
           // Dispatch events for frameworks that might be listening
-          customElement.dispatchEvent(new Event("input", { bubbles: true }));
-          customElement.dispatchEvent(new Event("change", { bubbles: true }));
+          customElement.dispatchEvent(new Event('input', { bubbles: true }));
+          customElement.dispatchEvent(new Event('change', { bubbles: true }));
         }
       }
     }
   }
 
-  _clearDraft() {
+  private _clearDraft() {
     localStorage.removeItem(this.storageKey);
   }
 
-  _handleStorageEvent(event: StorageEvent) {
+  private _handleStorageEvent(event: StorageEvent) {
     if (event.key === this.storageKey && event.newValue) {
       try {
         const draft: Draft = JSON.parse(event.newValue);
         this._restoreForm(draft.data);
       } catch (e) {
-        console.error("Form Rescue: Failed to sync from another tab.", e);
+        console.error('Form Rescue: Failed to sync from another tab.', e);
       }
     }
   }
 
-  _debounce(func: (...args: any[]) => void, delay: number) {
+  private _debounce(func: (...args: any[]) => void, delay: number) {
     let timeout: number;
     const debounced = function (this: any, ...args: any[]) {
       clearTimeout(timeout);
@@ -336,7 +321,7 @@ class Rescue {
     return debounced as ((...args: any[]) => void) & { cancel: () => void };
   }
 
-  _parseTtl(ttlString: string): number {
+  private _parseTtl(ttlString: string): number {
     const match = ttlString.match(/^(\d+)([mhd])$/);
     if (!match) return 24 * 60 * 60 * 1000;
 
@@ -344,14 +329,13 @@ class Rescue {
     const unit = match[2];
 
     switch (unit) {
-      case "m":
+      case 'm':
         return value * 60 * 1000;
-      case "h":
+      case 'h':
         return value * 60 * 60 * 1000;
-      case "d":
-        return value * 24 * 60 * 60 * 1000;
       default:
-        return value;
+        // 'd' is the only remaining match guaranteed by the regex
+        return value * 24 * 60 * 60 * 1000;
     }
   }
 }

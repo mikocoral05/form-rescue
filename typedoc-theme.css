@@ -1,0 +1,31 @@
+/* Custom TypeDoc Theme Overrides */
+
+:root {
+  /* The main accent color (links, active tabs, buttons) */
+  /* Using the vibrant color from your Ko-fi badge */
+  --color-accent: #ff5e5b;
+
+  /* Slightly darker shade for hover states */
+  --color-accent-dark: #e04e4b;
+}
+
+/* Inject the custom logo image next to the header title */
+a.title::before {
+  content: '';
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  background: url('./logo.png') no-repeat center center;
+  background-size: contain;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    /* You can customize light-mode specific variables here */
+    /* E.g., making the background slightly off-white */
+    --color-background: #fdfdfd;
+    --color-text: #333333;
+  }
+}

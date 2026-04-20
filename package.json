@@ -11,21 +11,42 @@
     "build": "esbuild index.ts --bundle --minify --format=iife --global-name=Rescue --outfile=dist/rescue.min.js && tsc --emitDeclarationOnly",
     "dev": "esbuild index.ts --bundle --format=iife --global-name=Rescue --outfile=dist/rescue.js --watch",
     "start": "npm run dev",
-    "test": "jest"
+    "test": "jest",
+    "type-check": "tsc --noEmit",
+    "validate": "npm run type-check && npm run test && npm run build",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "postinstall": "node -e \"if(/node_modules/.test(process.cwd())) { console.log('\\n\\x1b[32m\\x1b[1m🌟 Thank you for installing form-rescue! 🌟\\x1b[0m\\nIf this library saves you time, please consider supporting my work:\\n\\x1b[36mhttps://ko-fi.com/mikaeltenshio\\x1b[0m\\n') }\""
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/your-username/form-rescue.git"
+    "url": "git+https://github.com/mikocoral05/form-rescue.git"
   },
-  "keywords": ["form-rescue", "auto-save", "drafts"],
+  "keywords": [
+    "form-rescue",
+    "auto-save",
+    "drafts"
+  ],
   "author": "",
+  "funding": [
+    "https://ko-fi.com/mikaeltenshio",
+    "https://buymeacoffee.com/mikaeltenshio"
+  ],
   "license": "ISC",
   "devDependencies": {
+    "@eslint/js": "^9.39.4",
+    "@types/jest": "^29.5.12",
     "esbuild": "^0.20.2",
+    "eslint": "^10.2.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "globals": "^17.5.0",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
-    "@types/jest": "^29.5.12",
+    "prettier": "^3.8.3",
     "ts-jest": "^29.1.2",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "typescript-eslint": "^8.58.2"
   }
 }

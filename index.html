@@ -1,104 +1,115 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>Form Rescue Demo</title>
     <style>
-        body {
-            font-family: sans-serif;
-            max-width: 600px;
-            margin: 2rem auto;
-        }
+      body {
+        font-family: sans-serif;
+        max-width: 600px;
+        margin: 2rem auto;
+      }
 
-        div {
-            margin-bottom: 1rem;
-        }
+      div {
+        margin-bottom: 1rem;
+      }
 
-        label {
-            display: block;
-            margin-bottom: 0.25rem;
-            font-weight: bold;
-        }
+      label {
+        display: block;
+        margin-bottom: 0.25rem;
+        font-weight: bold;
+      }
 
-        input[type="text"],
-        input[type="email"],
-        select {
-            width: 100%;
-            padding: 8px;
-            box-sizing: border-box;
-        }
+      input[type='text'],
+      input[type='email'],
+      select {
+        width: 100%;
+        padding: 8px;
+        box-sizing: border-box;
+      }
 
-        button {
-            padding: 10px 15px;
-            border: none;
-            background-color: #007bff;
-            color: white;
-            cursor: pointer;
-            border-radius: 4px;
-        }
+      button {
+        padding: 10px 15px;
+        border: none;
+        background-color: #007bff;
+        color: white;
+        cursor: pointer;
+        border-radius: 4px;
+      }
 
-        button[type="reset"] {
-            background-color: #6c757d;
-        }
+      button[type='reset'] {
+        background-color: #6c757d;
+      }
     </style>
-</head>
+  </head>
 
-<body>
-
+  <body>
     <h1>Checkout</h1>
     <p>Fill out this form, then refresh the page to see the draft recovery prompt.</p>
     <form id="checkout-form">
-        <div>
-            <label for="name">Full Name:</label>
-            <input type="text" id="name" name="fullName">
+      <div>
+        <label for="name">Full Name:</label>
+        <input type="text" id="name" name="fullName" />
+      </div>
+      <div>
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="emailAddress" />
+      </div>
+      <div>
+        <label for="cc-number">Credit Card (will not be saved):</label>
+        <input
+          type="text"
+          id="cc-number"
+          name="creditCard"
+          data-no-rescue
+          placeholder="•••• •••• •••• ••••"
+        />
+      </div>
+      <div>
+        <p><b>Shipping Method:</b></p>
+        <label><input type="radio" name="shipping" value="standard" checked /> Standard</label>
+        <label><input type="radio" name="shipping" value="express" /> Express</label>
+      </div>
+      <div>
+        <label for="volume"> Volume Level: <span id="volume-val">50</span>% </label>
+        <input
+          type="range"
+          id="volume"
+          name="volume"
+          min="0"
+          max="100"
+          value="50"
+          oninput="document.getElementById('volume-val').innerText = this.value"
+        />
+      </div>
+      <div>
+        <label for="comments">Comments (WYSIWYG):</label>
+        <div
+          id="comments"
+          contenteditable="true"
+          data-rescue-content="comments"
+          style="border: 1px solid #ccc; padding: 8px; min-height: 100px"
+        >
+          Start typing your <b>comments</b> here...
         </div>
-        <div>
-            <label for="email">Email:</label>
-            <input type="email" id="email" name="emailAddress">
-        </div>
-        <div>
-            <label for="cc-number">Credit Card (will not be saved):</label>
-            <input type="text" id="cc-number" name="creditCard" data-no-rescue placeholder="•••• •••• •••• ••••">
-        </div>
-        <div>
-            <p><b>Shipping Method:</b></p>
-            <label><input type="radio" name="shipping" value="standard" checked> Standard</label>
-            <label><input type="radio" name="shipping" value="express"> Express</label>
-        </div>
-        <div>
-            <label for="volume">
-                Volume Level: <span id="volume-val">50</span>%
-            </label>
-            <input type="range" id="volume" name="volume" min="0" max="100" value="50"
-                oninput="document.getElementById('volume-val').innerText = this.value">
-        </div>
-        <div>
-            <label for="comments">Comments (WYSIWYG):</label>
-            <div id="comments" contenteditable="true" data-rescue-content="comments"
-                style="border: 1px solid #ccc; padding: 8px; min-height: 100px;">
-                Start typing your <b>comments</b> here...
-            </div>
-        </div>
-        <br>
-        <button type="submit">Submit</button>
-        <button type="reset">Reset Form</button>
+      </div>
+      <br />
+      <button type="submit">Submit</button>
+      <button type="reset">Reset Form</button>
     </form>
 
     <script src="../dist/rescue.js"></script>
     <script>
-        // --- Form Rescue Initialization ---
-        Rescue.watch('#checkout-form', {
-            ttl: '1h',
-            onDraftFound: (draft, restore) => {
-                const minutesAgo = Math.round((Date.now() - draft.timestamp) / 60000) || 'less than 1';
-                if (confirm(`We found a draft you saved ${minutesAgo} minute(s) ago. Restore it?`)) {
-                    restore();
-                }
-            }
-        });
+      // --- Form Rescue Initialization ---
+      Rescue.watch('#checkout-form', {
+        ttl: '1h',
+        onDraftFound: (draft, restore) => {
+          const minutesAgo = Math.round((Date.now() - draft.timestamp) / 60000) || 'less than 1';
+          if (confirm(`We found a draft you saved ${minutesAgo} minute(s) ago. Restore it?`)) {
+            restore();
+          }
+        },
+      });
     </script>
-
-</body>
-
+  </body>
 </html>
