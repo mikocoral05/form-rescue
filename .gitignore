@@ -6,4 +6,5 @@ dist/
 
 # IDE / OS files
 .DS_Store
-.idea/coverage/
+.idea/
+coverage/
