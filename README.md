@@ -1,5 +1,9 @@
 # Form Rescue
 
+[![npm version](https://img.shields.io/npm/v/@mikael_tenshio/form-rescue.svg)](https://www.npmjs.com/package/@mikael_tenshio/form-rescue)
+[![CI Status](https://github.com/mikocoral05/form-rescue/actions/workflows/ci.yml/badge.svg)](https://github.com/mikocoral05/form-rescue/actions/workflows/ci.yml)
+[![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
+
 An intelligent, zero-dependency auto-saver for HTML forms.
 
 Form Rescue acts as a safety net for your users. It automatically and efficiently persists form data to `localStorage` in the background as the user types. If the user accidentally closes the tab, navigates away, or experiences a browser crash, Form Rescue will seamlessly restore their typed data upon returning to the page.
