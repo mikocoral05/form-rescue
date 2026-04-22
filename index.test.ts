@@ -6,8 +6,11 @@ const createForm = () => {
         <form id="test-form">
             <input type="text" name="fullName" />
             <input type="email" name="emailAddress" />
+            <textarea name="message"></textarea>
             <input type="password" name="password" data-no-rescue />
             <input type="checkbox" name="agreed" />
+            <input type="checkbox" name="interests" value="news" />
+            <input type="checkbox" name="interests" value="updates" />
             <input type="radio" name="shipping" value="standard" checked />
             <input type="radio" name="shipping" value="express" />
             <input type="range" name="volume" min="0" max="100" value="50" />
@@ -15,6 +18,7 @@ const createForm = () => {
                 <option value="news">News</option>
                 <option value="updates">Updates</option>
             </select>
+            <button type="button" name="actionButton">Action</button>
             <input type="text" value="unnamed" />
             <input type="text" name="disabledField" disabled value="disabled" />
             <input type="file" name="document" />
@@ -22,6 +26,16 @@ const createForm = () => {
         </form>
     `;
   return document.getElementById('test-form') as HTMLFormElement;
+};
+
+const createCheckboxGroupForm = () => {
+  document.body.innerHTML = `
+        <form id="checkbox-group-form">
+            <input type="checkbox" name="interests" value="news" />
+            <input type="checkbox" name="interests" value="updates" />
+        </form>
+    `;
+  return document.getElementById('checkbox-group-form') as HTMLFormElement;
 };
 
 const STORAGE_KEY = `form-rescue-draft:${window.location.pathname}:test-form`;
@@ -37,7 +51,7 @@ describe('Form Rescue', () => {
   });
 
   afterEach(() => {
-    // Clean up fake timers
+    jest.restoreAllMocks();
     jest.useRealTimers();
   });
 
@@ -127,6 +141,52 @@ describe('Form Rescue', () => {
     expect(tagsSelect.options[1].selected).toBe(true);
   });
 
+  it('should save and restore a textarea field', () => {
+    new Rescue(form);
+
+    const messageField = form.querySelector('textarea[name="message"]') as HTMLTextAreaElement;
+    messageField.value = 'Longer feedback lives here.';
+    messageField.dispatchEvent(new Event('input', { bubbles: true }));
+
+    jest.runAllTimers();
+
+    const savedData = JSON.parse(localStorage.getItem(STORAGE_KEY)!);
+    expect(savedData.data.message).toBe('Longer feedback lives here.');
+
+    messageField.value = '';
+    new Rescue(form);
+
+    expect(messageField.value).toBe('Longer feedback lives here.');
+  });
+
+  it('should save and restore checkbox groups that share the same name', () => {
+    const checkboxGroupForm = createCheckboxGroupForm();
+    const checkboxGroupStorageKey = `form-rescue-draft:${window.location.pathname}:checkbox-group-form`;
+
+    new Rescue(checkboxGroupForm);
+
+    const [newsCheckbox, updatesCheckbox] = Array.from(
+      checkboxGroupForm.querySelectorAll('input[name="interests"]'),
+    ) as HTMLInputElement[];
+
+    newsCheckbox.checked = true;
+    updatesCheckbox.checked = true;
+    updatesCheckbox.dispatchEvent(new Event('input', { bubbles: true }));
+
+    jest.runAllTimers();
+
+    const savedData = JSON.parse(localStorage.getItem(checkboxGroupStorageKey)!);
+    expect(savedData.data.interests).toEqual(['news', 'updates']);
+
+    newsCheckbox.checked = false;
+    updatesCheckbox.checked = false;
+
+    new Rescue(checkboxGroupForm);
+
+    expect(newsCheckbox.checked).toBe(true);
+    expect(updatesCheckbox.checked).toBe(true);
+  });
+
   it('should call onDraftFound callback if a draft exists', () => {
     const draft = { timestamp: Date.now(), data: { fullName: 'Jane Doe' } };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
@@ -200,6 +260,27 @@ describe('Form Rescue', () => {
     expect(
       (form.querySelector('input[name="shipping"][value="express"]') as HTMLInputElement).checked,
     ).toBe(true);
+  });
+
+  it('should not save a new draft while restoring data from another tab', () => {
+    const onSaveMock = jest.fn();
+    new Rescue(form, { onSave: onSaveMock });
+
+    const storageEvent = new StorageEvent('storage', {
+      key: STORAGE_KEY,
+      newValue: JSON.stringify({
+        timestamp: Date.now(),
+        data: { fullName: 'Synced Name' },
+      }),
+    });
+
+    window.dispatchEvent(storageEvent);
+    jest.runAllTimers();
+
+    expect((form.querySelector('input[name="fullName"]') as HTMLInputElement).value).toBe(
+      'Synced Name',
+    );
+    expect(onSaveMock).not.toHaveBeenCalled();
   });
 
   it('should save and restore content from a contenteditable div', () => {
@@ -449,6 +530,7 @@ describe('Form Rescue', () => {
         timestamp: Date.now(),
         data: {
           nonExistentField: 'ghost data',
+          actionButton: 'ignore button controls',
           fullName: 'Real User',
         },
       };
@@ -459,6 +541,34 @@ describe('Form Rescue', () => {
       expect((form.querySelector('input[name="fullName"]') as HTMLInputElement).value).toBe(
         'Real User',
       );
+    });
+
+    it('should handle invalid draft value shapes gracefully during restore', () => {
+      const draft = {
+        timestamp: Date.now(),
+        data: {
+          interests: true,
+          tags: 'news',
+          fullName: null,
+          notes: null,
+          actionButton: 'ignored',
+        },
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
+
+      new Rescue(form);
+
+      const interestCheckboxes = Array.from(
+        form.querySelectorAll('input[name="interests"]'),
+      ) as HTMLInputElement[];
+      const tagsSelect = form.querySelector('select[name="tags"]') as HTMLSelectElement;
+      const notesEditor = form.querySelector('[data-rescue-content="notes"]') as HTMLElement;
+
+      expect(interestCheckboxes.every((checkbox) => !checkbox.checked)).toBe(true);
+      expect(tagsSelect.options[0].selected).toBe(false);
+      expect(tagsSelect.options[1].selected).toBe(false);
+      expect((form.querySelector('input[name="fullName"]') as HTMLInputElement).value).toBe('');
+      expect(notesEditor.innerHTML).toBe('');
     });
 
     it('should handle minutes (m) and days (d) TTL correctly', () => {
@@ -512,6 +622,53 @@ describe('Form Rescue', () => {
       const rescue3 = new Rescue(form, { storageKey: 'custom-key' });
       rescue3.save();
       expect(localStorage.getItem('custom-key')).not.toBeNull();
+    });
+
+    it('should fail gracefully when localStorage throws while saving', () => {
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      jest.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+        throw new Error('quota exceeded');
+      });
+
+      new Rescue(form);
+
+      const nameInput = form.querySelector('input[name="fullName"]') as HTMLInputElement;
+      nameInput.value = 'Storage Failure';
+      nameInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+      expect(() => jest.runAllTimers()).not.toThrow();
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Failed to save draft'),
+        expect.any(Error),
+      );
+    });
+
+    it('should fail gracefully when localStorage throws while reading', () => {
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      jest.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+        throw new Error('read failed');
+      });
+
+      expect(() => new Rescue(form)).not.toThrow();
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Failed to read draft'),
+        expect.any(Error),
+      );
+    });
+
+    it('should fail gracefully when localStorage throws while clearing', () => {
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      jest.spyOn(Storage.prototype, 'removeItem').mockImplementation(() => {
+        throw new Error('clear failed');
+      });
+
+      const rescueInstance = new Rescue(form);
+
+      expect(() => rescueInstance.clear()).not.toThrow();
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Failed to clear draft'),
+        expect.any(Error),
+      );
     });
 
     it('should skip properties in the prototype chain during restore', () => {

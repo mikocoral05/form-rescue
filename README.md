@@ -2,7 +2,7 @@
 
 [![npm version](https://img.shields.io/npm/v/@mikael_tenshio/form-rescue.svg)](https://www.npmjs.com/package/@mikael_tenshio/form-rescue)
 [![CI Status](https://github.com/mikocoral05/form-rescue/actions/workflows/ci.yml/badge.svg)](https://github.com/mikocoral05/form-rescue/actions/workflows/ci.yml)
-[![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 An intelligent, zero-dependency auto-saver for HTML forms.
 
@@ -22,7 +22,7 @@ Form Rescue acts as a safety net for your users. It automatically and efficientl
 Install via npm:
 
 ```bash
-npm install form-rescue
+npm install @mikael_tenshio/form-rescue
 ```
 
 ## Basic Usage
@@ -30,7 +30,7 @@ npm install form-rescue
 The easiest way to use Form Rescue is by calling the static `watch` method and passing a CSS selector for your form.
 
 ```javascript
-import Rescue from 'form-rescue';
+import Rescue from '@mikael_tenshio/form-rescue';
 
 // Initializes auto-saving on the form with the ID "checkout-form"
 Rescue.watch('#checkout-form');
@@ -41,6 +41,18 @@ Alternatively, you can instantiate it directly with an HTML element:
 ```javascript
 const myForm = document.getElementById('checkout-form');
 const rescueInstance = new Rescue(myForm);
+```
+
+### Browser Script Tag
+
+If you prefer to load Form Rescue directly in the browser, use the bundled browser build:
+
+```html
+<script src="https://unpkg.com/@mikael_tenshio/form-rescue/dist/rescue.min.js"></script>
+<script>
+  const form = document.getElementById('checkout-form');
+  new window.Rescue(form);
+</script>
 ```
 
 ## Configuration Options
@@ -168,4 +180,4 @@ Rescue.watch('#ticket-form', {
 
 ## License
 
-ISC
+MIT
