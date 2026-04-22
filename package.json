@@ -1,6 +1,6 @@
 {
   "name": "@mikael_tenshio/form-rescue",
-  "version": "1.0.13",
+  "version": "1.0.14",
   "description": "An intelligent, zero-dependency auto-saver for HTML forms.",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
