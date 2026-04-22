@@ -69,5 +69,8 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "overrides": {
+    "@tootallnate/once": "^3.0.1"
   }
 }
